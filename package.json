@@ -6,14 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "format": "prettier --write ./src"
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "host": "vite --host"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@reduxjs/toolkit": "^2.12.0",
     "@tanstack/react-query": "^5.101.1",
+    "@tanstack/react-query-devtools": "^5.101.4",
     "axios": "^1.18.1",
     "dayjs": "^1.11.21",
     "lucide-react": "^0.474.0",
@@ -26,6 +27,7 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@tailwindcss/vite": "^4.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.17.0",
@@ -34,6 +36,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
     "prettier": "^3.4.2",
+    "rollup-plugin-visualizer": "^7.0.1",
     "tailwindcss": "^4.3.1",
     "vite": "^6.3.5"
   }

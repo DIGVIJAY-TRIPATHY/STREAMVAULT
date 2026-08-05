@@ -2,7 +2,9 @@ import axiosInstance from './axiosInstance';
 
 export const userApi = {
   async getCurrentUser() {
-    return await axiosInstance.get('/users/current-user');
+    // Backend defines this route as POST, not GET:
+    // router.route("/current-user").post(verifyJWT, getCurrentUser)
+    return await axiosInstance.post('/users/current-user');
   },
 
   async updateAccount({ fullName, email }) {

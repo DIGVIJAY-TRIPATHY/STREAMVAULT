@@ -1,75 +1,75 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const getInitialState = () => {
-  const savedTheme = localStorage.getItem("videotube-theme");
-  const theme = savedTheme === "dark" ? "dark" : "light";
+function getInitialTheme() {
+  if (typeof window === "undefined") return "light";
 
-  if (theme === "dark") {
-    document.documentElement.classList.add("dark");
+  const stored = window.localStorage.getItem("theme");
+
+  if (stored === "dark" || stored === "light") {
+    return stored;
   }
 
-  return {
-    sidebarOpen: true,
-    theme,
-    activeModal: null,
-  };
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function applyTheme(theme) {
+  if (typeof document === "undefined") return;
+
+  document.documentElement.classList.toggle("dark", theme === "dark");
+
+  try {
+    window.localStorage.setItem("theme", theme);
+  } catch {
+    // ignore storage errors (e.g. private browsing)
+  }
+}
+
+const initialTheme = getInitialTheme();
+
+if (typeof document !== "undefined") {
+  applyTheme(initialTheme);
+}
+
+const initialState = {
+  isSidebarOpen: false,
+  theme: initialTheme,
 };
 
 const uiSlice = createSlice({
   name: "ui",
-  initialState: getInitialState(),
+  initialState,
   reducers: {
     toggleSidebar: (state) => {
-      state.sidebarOpen = !state.sidebarOpen;
+      state.isSidebarOpen = !state.isSidebarOpen;
     },
-
-    setSidebarOpen: (state, action) => {
-      state.sidebarOpen = action.payload;
+    closeSidebar: (state) => {
+      state.isSidebarOpen = false;
     },
-
+    openSidebar: (state) => {
+      state.isSidebarOpen = true;
+    },
     toggleTheme: (state) => {
-      const newTheme = state.theme === "light" ? "dark" : "light";
-
-      state.theme = newTheme;
-      document.documentElement.classList.toggle(
-        "dark",
-        newTheme === "dark"
-      );
-      localStorage.setItem("videotube-theme", newTheme);
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      applyTheme(state.theme);
     },
-
     setTheme: (state, action) => {
-      const newTheme = action.payload;
-
-      state.theme = newTheme;
-      document.documentElement.classList.toggle(
-        "dark",
-        newTheme === "dark"
-      );
-      localStorage.setItem("videotube-theme", newTheme);
-    },
-
-    openModal: (state, action) => {
-      state.activeModal = action.payload;
-    },
-
-    closeModal: (state) => {
-      state.activeModal = null;
+      state.theme = action.payload;
+      applyTheme(state.theme);
     },
   },
 });
 
 export const {
   toggleSidebar,
-  setSidebarOpen,
+  closeSidebar,
+  openSidebar,
   toggleTheme,
   setTheme,
-  openModal,
-  closeModal,
 } = uiSlice.actions;
 
-export const selectSidebarOpen = (state) => state.ui.sidebarOpen;
+export const selectIsSidebarOpen = (state) => state.ui.isSidebarOpen;
 export const selectTheme = (state) => state.ui.theme;
-export const selectActiveModal = (state) => state.ui.activeModal;
 
 export default uiSlice.reducer;

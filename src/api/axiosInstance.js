@@ -84,11 +84,17 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    // Normalize error messages
+    // Normalize error messages while preserving the original axios
+    // response/status so callers can still branch on status codes
+    // (e.g. queryClient's retry logic, App.jsx's session restore).
     const serverMessage =
       error.response?.data?.message || error.message || 'An unexpected error occurred';
 
-    return Promise.reject(new Error(serverMessage));
+    const normalizedError = new Error(serverMessage);
+    normalizedError.response = error.response;
+    normalizedError.status = error.response?.status;
+
+    return Promise.reject(normalizedError);
   }
 );
 

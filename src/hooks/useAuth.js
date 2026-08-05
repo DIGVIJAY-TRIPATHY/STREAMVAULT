@@ -1,77 +1,52 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { useAppDispatch } from "../app/store";
-import { queryClient } from "../app/queryClient";
-import { authApi } from "../api/authApi";
-import { userApi } from "../api/userApi";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+
+import { useAppDispatch, useAppSelector } from "../app/hooks";
 import {
+  clearUser,
   selectCurrentUser,
   selectIsAuthenticated,
   selectAuthStatus,
-  setUser,
-  clearUser,
-  setLoading,
 } from "../features/auth/authSlice";
+import { authApi } from "../api/authApi";
 
 /**
- * Custom hook that provides authentication state and actions.
- * Does not perform any network requests automatically.
+ * Convenience hook that exposes the current auth state along with a
+ * `logout` action that calls the API, clears Redux state, resets any
+ * cached queries, and redirects to the login page.
  */
-const useAuth = () => {
+function useAuth() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const user = useSelector(selectCurrentUser);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  const authStatus = useSelector(selectAuthStatus);
-
-  const login = useCallback(
-    async (credentials) => {
-      dispatch(setLoading());
-      try {
-        const userData = await authApi.login(credentials);
-        dispatch(setUser(userData));
-        return userData;
-      } catch (error) {
-        dispatch(clearUser());
-        throw error;
-      }
-    },
-    [dispatch]
-  );
+  const user = useAppSelector(selectCurrentUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const status = useAppSelector(selectAuthStatus);
 
   const logout = useCallback(async () => {
-    dispatch(setLoading());
     try {
       await authApi.logout();
+    } catch (error) {
+      // Even if the request fails (e.g. token already expired),
+      // proceed to clear local state so the UI stays consistent.
+      console.error("Logout request failed:", error);
     } finally {
       dispatch(clearUser());
       queryClient.clear();
-      navigate("/login");
+      toast.success("Logged out successfully");
+      navigate("/login", { replace: true });
     }
-  }, [dispatch, navigate]);
-
-  const fetchCurrentUser = useCallback(async () => {
-    dispatch(setLoading());
-    try {
-      const userData = await userApi.getCurrentUser();
-      dispatch(setUser(userData));
-      return userData;
-    } catch (error) {
-      dispatch(clearUser());
-      throw error;
-    }
-  }, [dispatch]);
+  }, [dispatch, navigate, queryClient]);
 
   return {
     user,
     isAuthenticated,
-    authStatus,
-    login,
+    status,
     logout,
-    fetchCurrentUser,
   };
-};
+}
 
 export default useAuth;
