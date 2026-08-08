@@ -19,6 +19,7 @@ import Button from "../common/Button";
 import { authApi } from "../../services/authApi";
 import { setUser } from "../../features/auth/authSlice";
 import { useAppDispatch } from "../../app/hooks";
+import { consumePendingAction } from "../../utils/pendingAction";
 
 
 // =========================
@@ -83,6 +84,19 @@ function LoginForm() {
 
             // Save user in Redux
             dispatch(setUser(user));
+
+            // Save user in Redux
+            dispatch(setUser(user));
+
+            // Automatically finish whatever the guest was trying to do
+            // (e.g. Like/Subscribe) instead of making them click it again.
+            const pendingAction = consumePendingAction();
+            pendingAction?.();
+
+            // Show success message
+            toast.success(
+                `Welcome back, ${user.fullName}!`
+            );
 
             // Show success message
             toast.success(

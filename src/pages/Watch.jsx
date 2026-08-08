@@ -9,6 +9,8 @@ import { videoApi } from "../api/videoApi";
 import { likeApi } from "../api/likeApi";
 import { userApi } from "../api/userApi";
 
+import useRequireAuth from "../hooks/useRequireAuth";
+
 import Avatar from "../components/common/Avatar";
 import SubscribeButton from "../components/channel/SubscribeButton";
 import CommentList from "../components/comment/CommentList";
@@ -18,13 +20,13 @@ import EmptyState from "../components/common/EmptyState";
 import { QUERY_KEYS } from "../utils/constants";
 import { formatRelativeDate, formatCount } from "../utils/formatDate";
 import { getMediaUrl } from "../utils/media";
-import { selectCurrentUser, selectIsAuthenticated } from "../features/auth/authSlice";
+import { selectCurrentUser } from "../features/auth/authSlice";
 
 function Watch() {
   const { videoId } = useParams();
 
   const currentUser = useSelector(selectCurrentUser);
-  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const requireAuth = useRequireAuth();
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: [QUERY_KEYS.VIDEO, videoId],
@@ -63,12 +65,7 @@ function Watch() {
     setLikeCount(video?.likesCount ?? 0);
   }, [video?._id, initiallyLiked, video?.likesCount]);
 
-  const handleToggleLike = async () => {
-    if (!isAuthenticated) {
-      toast.error("Sign in to like this video");
-      return;
-    }
-
+  const performLike = async () => {
     const previousLiked = isLiked;
     const previousCount = likeCount;
 
@@ -85,6 +82,10 @@ function Watch() {
     } finally {
       setIsTogglingLike(false);
     }
+  };
+
+  const handleToggleLike = () => {
+    requireAuth(performLike, "Create a StreamVault account to like videos.");
   };
 
   if (isLoading) {

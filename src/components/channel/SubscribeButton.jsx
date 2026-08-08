@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
 import { subscriptionApi } from "../../api/subscriptionApi";
+import useRequireAuth from "../../hooks/useRequireAuth";
 import Button from "../common/Button";
 
 function SubscribeButton({
@@ -11,9 +12,7 @@ function SubscribeButton({
     initialIsSubscribed = false,
     initialCount = 0,
 }) {
-    const isAuthenticated = useSelector(
-        (state) => state.auth.isAuthenticated
-    );
+    const requireAuth = useRequireAuth();
 
     const currentUser = useSelector(
         (state) => state.auth.user
@@ -33,21 +32,14 @@ function SubscribeButton({
         currentUser?._id &&
         String(currentUser._id) === String(channelId);
 
-    const handleSubscribe = async () => {
-        if (!isAuthenticated) {
-            toast.error("Sign in to subscribe");
-            return;
-        }
-
+    const performSubscribe = async () => {
         if (isOwner) {
             return;
         }
 
-        // Save previous state for rollback
         const previousSubscribed = isSubscribed;
         const previousCount = count;
 
-        // Optimistic update
         setIsSubscribed(!previousSubscribed);
 
         setCount(
@@ -63,7 +55,6 @@ function SubscribeButton({
                 channelId
             );
         } catch (error) {
-            // Rollback optimistic update
             setIsSubscribed(previousSubscribed);
             setCount(previousCount);
 
@@ -74,6 +65,13 @@ function SubscribeButton({
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSubscribe = () => {
+        requireAuth(
+            performSubscribe,
+            "Create a StreamVault account to subscribe to channels."
+        );
     };
 
     if (isOwner) {

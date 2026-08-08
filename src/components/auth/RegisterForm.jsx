@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -21,6 +21,7 @@ import Button from "../common/Button";
 import { authApi } from "../../services/authApi";
 import { setUser } from "../../features/auth/authSlice";
 import { useAppDispatch } from "../../app/hooks";
+import { consumePendingAction } from "../../utils/pendingAction";
 
 
 // ===============================
@@ -118,6 +119,7 @@ const registerSchema = yup.object({
 
 function RegisterForm() {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useAppDispatch();
 
     const avatarInputRef = useRef(null);
@@ -228,11 +230,16 @@ function RegisterForm() {
 
             dispatch(setUser(user));
 
+            // Automatically finish whatever the guest was trying to do
+            // (e.g. Like/Subscribe) instead of making them click it again.
+            const pendingAction = consumePendingAction();
+            pendingAction?.();
+
             toast.success(
                 `Account created! Welcome, ${user.fullName}`
             );
 
-            navigate("/", {
+            navigate(location.state?.from?.pathname || "/", {
                 replace: true,
             });
         },

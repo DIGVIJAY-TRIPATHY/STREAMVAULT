@@ -12,10 +12,13 @@ import Button from "../common/Button";
 
 import { QUERY_KEYS } from "../../utils/constants";
 
+import {  useLocation } from "react-router-dom";
+
 
 function CommentForm({ videoId, onSuccess }) {
     const queryClient = useQueryClient();
     const textareaRef = useRef(null);
+    const location = useLocation();
 
     const isAuthenticated = useSelector(
         (state) => state.auth.isAuthenticated
@@ -24,7 +27,6 @@ function CommentForm({ videoId, onSuccess }) {
     const user = useSelector(
         (state) => state.auth.user
     );
-
 
     const {
         register,
@@ -122,16 +124,17 @@ function CommentForm({ videoId, onSuccess }) {
 
     if (!isAuthenticated) {
         return (
-            <div className="flex items-center gap-3 rounded-xl bg-slate-100 p-4 dark:bg-slate-900">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-100 p-4 dark:bg-slate-900">
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Sign in to comment.
+                    Login to join the discussion.
                 </p>
 
                 <Link
                     to="/login"
-                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
+                    state={{ from: location }}
+                    className="shrink-0 text-sm font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400"
                 >
-                    Sign in
+                    Login
                 </Link>
             </div>
         );

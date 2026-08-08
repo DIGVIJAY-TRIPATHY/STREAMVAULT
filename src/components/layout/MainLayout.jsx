@@ -2,6 +2,8 @@ import { Outlet } from "react-router-dom";
 
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import AuthRequiredModal from "../common/AuthRequiredModal";
+import WelcomeModal from "../common/WelcomeModal";
 
 function MainLayout() {
   return (
@@ -15,6 +17,9 @@ function MainLayout() {
           <Outlet />
         </main>
       </div>
+
+      <AuthRequiredModal />
+      <WelcomeModal />
     </div>
   );
 }
