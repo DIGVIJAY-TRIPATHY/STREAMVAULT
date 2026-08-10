@@ -65,3 +65,12 @@ body {
 .animate-badge-float {
   animation: badge-float 3s ease-in-out infinite;
 }
+
+@keyframes shimmer-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.animate-shimmer-sweep {
+  animation: shimmer-sweep 1.4s ease-in-out infinite;
+}
