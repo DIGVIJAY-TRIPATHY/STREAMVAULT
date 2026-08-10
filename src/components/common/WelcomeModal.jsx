@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { useAppSelector } from "../../app/hooks";
-import { selectIsAuthenticated } from "../../features/auth/authSlice";
+import { selectIsAuthenticated, selectAuthStatus } from "../../features/auth/authSlice";
 
 const FEATURES = [
     { icon: ThumbsUp, label: "Like videos", color: "from-rose-500 to-pink-500" },
@@ -32,14 +32,17 @@ const FEATURES = [
 function WelcomeModal() {
     const navigate = useNavigate();
     const isAuthenticated = useAppSelector(selectIsAuthenticated);
+    const authStatus = useAppSelector(selectAuthStatus);
 
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            setIsOpen(true);
-        }
-    }, [isAuthenticated]);
+    if (authStatus === "loading") return;
+
+    if (!isAuthenticated) {
+        setIsOpen(true);
+    }
+}, [isAuthenticated, authStatus]);
 
     useEffect(() => {
         if (!isOpen) return;
