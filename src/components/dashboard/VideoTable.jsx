@@ -113,20 +113,27 @@ export default function VideoTable({ videos = [], onTogglePublish, onDelete }) {
 
                                 {/* Status Toggle */}
                                 <td className="whitespace-nowrap px-6 py-4">
-                                    <label className="relative inline-flex cursor-pointer items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={video.isPublished}
-                                            onChange={() =>
-                                                handleToggle(video._id, video.isPublished)
-                                            }
-                                            className="peer sr-only"
-                                        />
-                                        <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:bg-gray-700 dark:peer-focus:ring-indigo-800" />
-                                        <span className="ms-2 text-xs font-medium text-gray-600 dark:text-gray-300">
-                                            {video.isPublished ? 'Published' : 'Unpublished'}
+                                    {video.status === "pending" ? (
+                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                            Pending review
                                         </span>
-                                    </label>
+                                    ) : (
+                                        <label className="relative inline-flex cursor-pointer items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={video.isPublished}
+                                                onChange={() =>
+                                                    handleToggle(video._id, video.isPublished)
+                                                }
+                                                className="peer sr-only"
+                                            />
+                                            <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:bg-gray-700 dark:peer-focus:ring-indigo-800" />
+                                            <span className="ms-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                                {video.isPublished ? 'Published' : 'Unpublished'}
+                                            </span>
+                                        </label>
+                                    )}
                                 </td>
 
                                 {/* Actions */}
@@ -190,18 +197,25 @@ export default function VideoTable({ videos = [], onTogglePublish, onDelete }) {
 
                         <div className="flex items-center justify-between pt-1">
                             {/* Mobile Status Toggle */}
-                            <label className="relative inline-flex cursor-pointer items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={video.isPublished}
-                                    onChange={() => handleToggle(video._id, video.isPublished)}
-                                    className="peer sr-only"
-                                />
-                                <div className="peer h-5 w-9 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:bg-gray-700" />
-                                <span className="ms-2 text-xs font-medium text-gray-600 dark:text-gray-300">
-                                    {video.isPublished ? 'Published' : 'Unpublished'}
+                            {video.status === "pending" ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                    Pending review
                                 </span>
-                            </label>
+                            ) : (
+                                <label className="relative inline-flex cursor-pointer items-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={video.isPublished}
+                                        onChange={() => handleToggle(video._id, video.isPublished)}
+                                        className="peer sr-only"
+                                    />
+                                    <div className="peer h-5 w-9 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:bg-gray-700" />
+                                    <span className="ms-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+                                        {video.isPublished ? 'Published' : 'Unpublished'}
+                                    </span>
+                                </label>
+                            )}
 
                             {/* Mobile Actions */}
                             <div className="flex items-center gap-1">

@@ -55,9 +55,10 @@ function Upload() {
     },
 
     onSuccess: (data) => {
-      toast.success("Video uploaded successfully");
-      const videoId = data?.data?._id;
-      navigate(videoId ? `/watch/${videoId}` : "/dashboard");
+      toast.success(
+        data?.message || "Video submitted for review. It will be visible once approved."
+      );
+      navigate("/dashboard");
     },
 
     onError: (error) => {

@@ -4,6 +4,7 @@ import MainLayout from '../components/layout/MainLayout';
 import AuthLayout from '../components/layout/AuthLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import PublicOnlyRoute from '../components/common/PublicOnlyRoute';
+import RoleProtectedRoute from '../components/common/RoleProtectedRoute';
 
 import Home from '../pages/Home';
 import Login from '../pages/Login';
@@ -20,6 +21,7 @@ import History from '../pages/History';
 import Playlists from '../pages/Playlists';
 import PlaylistDetail from '../pages/PlaylistDetail';
 import NotFound from '../pages/NotFound';
+import Verification from '../pages/Verification';
 
 function AppRoutes() {
     return (
@@ -50,6 +52,11 @@ function AppRoutes() {
                     <Route path="/liked-videos" element={<LikedVideos />} />
                     <Route path="/history" element={<History />} />
                     <Route path="/playlists" element={<Playlists />} />
+                </Route>
+
+                {/* highCommand-only */}
+                <Route element={<RoleProtectedRoute allowedRoles={['highCommand']} />}>
+                    <Route path="/verification" element={<Verification />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

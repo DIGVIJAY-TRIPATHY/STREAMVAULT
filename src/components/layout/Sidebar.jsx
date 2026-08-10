@@ -7,11 +7,12 @@ import {
   ListVideo,
   LayoutDashboard,
   Upload,
+  ShieldCheck,
   X,
 } from "lucide-react";
 
 import { selectIsSidebarOpen, closeSidebar } from "../../features/ui/uiSlice";
-import { selectIsAuthenticated } from "../../features/auth/authSlice";
+import { selectIsAuthenticated, selectCurrentUser } from "../../features/auth/authSlice";
 
 const navItems = [
   { label: "Home", to: "/", icon: Home, requiresAuth: false },
@@ -20,20 +21,29 @@ const navItems = [
   { label: "Playlists", to: "/playlists", icon: ListVideo, requiresAuth: true },
   { label: "Studio", to: "/dashboard", icon: LayoutDashboard, requiresAuth: true },
   { label: "Upload", to: "/upload", icon: Upload, requiresAuth: true },
+  {
+    label: "Verification",
+    to: "/verification",
+    icon: ShieldCheck,
+    requiresAuth: true,
+    requiresRole: "highCommand",
+  },
 ];
 
 function Sidebar() {
   const dispatch = useDispatch();
   const isOpen = useSelector(selectIsSidebarOpen);
   const isAuthenticated = useSelector(selectIsAuthenticated);
+  const currentUser = useSelector(selectCurrentUser);
 
-  const visibleItems = navItems.filter(
-    (item) => !item.requiresAuth || isAuthenticated
-  );
+  const visibleItems = navItems.filter((item) => {
+    if (item.requiresAuth && !isAuthenticated) return false;
+    if (item.requiresRole && currentUser?.role !== item.requiresRole) return false;
+    return true;
+  });
 
   return (
     <>
-      {/* Mobile backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/40 lg:hidden"
