@@ -1,10 +1,10 @@
-
 function Button({
     variant = "primary",
     size = "md",
     isLoading = false,
     disabled = false,
     leftIcon,
+    rightIcon,
     children,
     className = "",
     ...rest
@@ -69,6 +69,8 @@ function Button({
             )}
 
             {children}
+
+            {!isLoading && rightIcon}
         </button>
     );
 }

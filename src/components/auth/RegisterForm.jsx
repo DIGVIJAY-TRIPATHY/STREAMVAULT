@@ -5,6 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Camera,
     Eye,
@@ -13,6 +14,7 @@ import {
     Lock,
     Mail,
     User,
+    ArrowRight,
 } from "lucide-react";
 
 import Input from "../common/Input";
@@ -111,6 +113,26 @@ const registerSchema = yup.object({
             }
         ),
 });
+
+
+// ===============================
+// Animation Variants
+// ===============================
+
+const containerVariants = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.06,
+            delayChildren: 0.05,
+        },
+    },
+};
+
+const fieldVariants = {
+    hidden: { opacity: 0, y: 14 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
+};
 
 
 // ===============================
@@ -313,155 +335,52 @@ function RegisterForm() {
         <div className="w-full">
 
             {/* Heading */}
-            <div className="mb-6 text-center">
-                <h1
-                    className="
-                        text-2xl font-bold
-                        text-slate-900
-                        dark:text-white
-                    "
-                >
-                    Create your VideoTube account
+            <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="mb-8"
+            >
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+                    Create your account
                 </h1>
 
-                <p
-                    className="
-                        mt-2 text-sm
-                        text-slate-500
-                        dark:text-slate-400
-                    "
-                >
-                    Join VideoTube and start sharing
-                    your videos.
+                <p className="mt-2 text-sm text-slate-500">
+                    Join StreamVault and start sharing your videos.
                 </p>
-            </div>
+            </motion.div>
 
 
             {/* API Error */}
-            {apiError && (
-                <div
-                    role="alert"
-                    className="
-                        mb-5 rounded-lg
-                        border border-red-200
-                        bg-red-50
-                        px-4 py-3
-                        text-sm text-red-600
-                        dark:border-red-900/50
-                        dark:bg-red-950/30
-                        dark:text-red-400
-                    "
-                >
-                    {apiError}
-                </div>
-            )}
+            <AnimatePresence>
+                {apiError && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        role="alert"
+                        className="mb-5 overflow-hidden rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+                    >
+                        {apiError}
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
 
-            <form
+            <motion.form
                 onSubmit={handleSubmit(onSubmit)}
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
                 className="space-y-4"
             >
 
-                {/* Avatar Upload */}
-                <div className="flex flex-col items-center">
+                {/* Cover + Avatar combined picker */}
+                <motion.div variants={fieldVariants} className="relative">
                     <button
                         type="button"
-                        onClick={() =>
-                            avatarInputRef.current?.click()
-                        }
-                        className="
-                            group relative
-                            h-24 w-24
-                            overflow-hidden
-                            rounded-full
-                            border-2 border-dashed
-                            border-slate-300
-                            bg-slate-100
-                            transition-colors
-                            hover:border-indigo-500
-                            dark:border-slate-600
-                            dark:bg-slate-800
-                        "
-                    >
-                        {avatarPreview ? (
-                            <img
-                                src={avatarPreview}
-                                alt="Avatar preview"
-                                className="h-full w-full object-cover"
-                            />
-                        ) : (
-                            <div
-                                className="
-                                    flex h-full w-full
-                                    flex-col
-                                    items-center
-                                    justify-center
-                                    text-slate-400
-                                    dark:text-slate-500
-                                "
-                            >
-                                <Camera size={28} />
-
-                                <span className="mt-1 text-[10px]">
-                                    Avatar
-                                </span>
-                            </div>
-                        )}
-
-                        <div
-                            className="
-                                absolute inset-0
-                                flex items-center justify-center
-                                bg-black/50
-                                opacity-0
-                                transition-opacity
-                                group-hover:opacity-100
-                            "
-                        >
-                            <Camera
-                                size={22}
-                                className="text-white"
-                            />
-                        </div>
-                    </button>
-
-                    <input
-                        ref={avatarInputRef}
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleAvatarChange}
-                    />
-
-                    {errors.avatar && (
-                        <p className="mt-1 text-xs text-red-500">
-                            {errors.avatar.message}
-                        </p>
-                    )}
-                </div>
-
-
-                {/* Cover Image */}
-                <div>
-                    <button
-                        type="button"
-                        onClick={() =>
-                            coverInputRef.current?.click()
-                        }
-                        className="
-                            group relative
-                            flex aspect-[16/4]
-                            w-full
-                            overflow-hidden
-                            rounded-xl
-                            border-2 border-dashed
-                            border-slate-300
-                            bg-slate-100
-                            transition-colors
-                            hover:border-indigo-500
-                            dark:border-slate-600
-                            dark:bg-slate-800
-                        "
+                        onClick={() => coverInputRef.current?.click()}
+                        className="group relative flex aspect-[16/5] w-full overflow-hidden rounded-2xl border-2 border-dashed border-slate-300 bg-slate-100 transition-colors hover:border-indigo-500"
                     >
                         {coverPreview ? (
                             <img
@@ -470,37 +389,14 @@ function RegisterForm() {
                                 className="h-full w-full object-cover"
                             />
                         ) : (
-                            <div
-                                className="
-                                    flex h-full w-full
-                                    flex-col
-                                    items-center justify-center
-                                    text-slate-400
-                                    dark:text-slate-500
-                                "
-                            >
-                                <ImageIcon size={28} />
-
-                                <span className="mt-1 text-xs">
-                                    Add cover image
-                                </span>
+                            <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
+                                <ImageIcon size={24} />
+                                <span className="mt-1 text-xs">Add a cover image</span>
                             </div>
                         )}
 
-                        <div
-                            className="
-                                absolute inset-0
-                                flex items-center justify-center
-                                bg-black/50
-                                opacity-0
-                                transition-opacity
-                                group-hover:opacity-100
-                            "
-                        >
-                            <ImageIcon
-                                size={24}
-                                className="text-white"
-                            />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                            <ImageIcon size={22} className="text-white" />
                         </div>
                     </button>
 
@@ -512,203 +408,245 @@ function RegisterForm() {
                         onChange={handleCoverChange}
                     />
 
-                    {errors.coverImage && (
-                        <p className="mt-1 text-xs text-red-500">
-                            {errors.coverImage.message}
-                        </p>
-                    )}
-                </div>
+                    {/* Avatar overlaps the bottom-left of the cover, YouTube-style */}
+                    <button
+                        type="button"
+                        onClick={() => avatarInputRef.current?.click()}
+                        className="group absolute -bottom-8 left-4 h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-lg ring-2 ring-slate-200 transition-transform hover:scale-105"
+                    >
+                        {avatarPreview ? (
+                            <img
+                                src={avatarPreview}
+                                alt="Avatar preview"
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-full w-full flex-col items-center justify-center text-slate-400">
+                                <Camera size={20} />
+                            </div>
+                        )}
+
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                            <Camera size={16} className="text-white" />
+                        </div>
+                    </button>
+
+                    <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handleAvatarChange}
+                    />
+                </motion.div>
+
+                {(errors.avatar || errors.coverImage) && (
+                    <motion.div variants={fieldVariants} className="!mt-3 space-y-0.5 pl-1">
+                        {errors.avatar && (
+                            <p className="text-xs text-red-500">{errors.avatar.message}</p>
+                        )}
+                        {errors.coverImage && (
+                            <p className="text-xs text-red-500">{errors.coverImage.message}</p>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* Spacer for the overlapping avatar */}
+                <div className="!mt-10" />
 
 
                 {/* Full Name */}
-                <Input
-                    label="Full Name"
-                    type="text"
-                    placeholder="Enter your full name"
-                    leftIcon={<User size={18} />}
-                    error={errors.fullName?.message}
-                    autoComplete="name"
-                    {...register("fullName")}
-                />
+                <motion.div variants={fieldVariants}>
+                    <Input
+                        forceLight
+                        label="Full Name"
+                        type="text"
+                        placeholder="Enter your full name"
+                        leftIcon={<User size={18} />}
+                        error={errors.fullName?.message}
+                        autoComplete="name"
+                        {...register("fullName")}
+                    />
+                </motion.div>
 
 
                 {/* Username */}
-                <Input
-                    label="Username"
-                    type="text"
-                    placeholder="e.g. digvijay_123"
-                    leftIcon={<User size={18} />}
-                    error={errors.username?.message}
-                    autoComplete="username"
-                    {...register("username")}
-                />
+                <motion.div variants={fieldVariants}>
+                    <Input
+                        forceLight
+                        label="Username"
+                        type="text"
+                        placeholder="e.g. digvijay_123"
+                        leftIcon={<User size={18} />}
+                        error={errors.username?.message}
+                        autoComplete="username"
+                        {...register("username")}
+                    />
+                </motion.div>
 
 
                 {/* Email */}
-                <Input
-                    label="Email"
-                    type="email"
-                    placeholder="Enter your email"
-                    leftIcon={<Mail size={18} />}
-                    error={errors.email?.message}
-                    autoComplete="email"
-                    {...register("email")}
-                />
+                <motion.div variants={fieldVariants}>
+                    <Input
+                        forceLight
+                        label="Email"
+                        type="email"
+                        placeholder="Enter your email"
+                        leftIcon={<Mail size={18} />}
+                        error={errors.email?.message}
+                        autoComplete="email"
+                        {...register("email")}
+                    />
+                </motion.div>
 
 
                 {/* Password */}
-                <Input
-                    label="Password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="At least 8 characters"
-                    leftIcon={<Lock size={18} />}
-                    rightIcon={
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setShowPassword(
-                                    (current) => !current
-                                )
-                            }
-                            className="
-                                text-slate-400
-                                hover:text-slate-600
-                                dark:hover:text-slate-200
-                            "
-                            aria-label={
-                                showPassword
-                                    ? "Hide password"
-                                    : "Show password"
-                            }
-                        >
-                            {showPassword ? (
-                                <EyeOff size={18} />
-                            ) : (
-                                <Eye size={18} />
-                            )}
-                        </button>
-                    }
-                    error={errors.password?.message}
-                    autoComplete="new-password"
-                    {...register("password")}
-                />
+                <motion.div variants={fieldVariants}>
+                    <Input
+                        forceLight
+                        label="Password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="At least 8 characters"
+                        leftIcon={<Lock size={18} />}
+                        rightIcon={
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowPassword(
+                                        (current) => !current
+                                    )
+                                }
+                                className="text-slate-400 hover:text-slate-600"
+                                aria-label={
+                                    showPassword
+                                        ? "Hide password"
+                                        : "Show password"
+                                }
+                            >
+                                {showPassword ? (
+                                    <EyeOff size={18} />
+                                ) : (
+                                    <Eye size={18} />
+                                )}
+                            </button>
+                        }
+                        error={errors.password?.message}
+                        autoComplete="new-password"
+                        {...register("password")}
+                    />
+                </motion.div>
 
 
                 {/* Confirm Password */}
-                <Input
-                    label="Confirm Password"
-                    type={
-                        showConfirmPassword
-                            ? "text"
-                            : "password"
-                    }
-                    placeholder="Re-enter your password"
-                    leftIcon={<Lock size={18} />}
-                    rightIcon={
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setShowConfirmPassword(
-                                    (current) => !current
-                                )
-                            }
-                            className="
-                                text-slate-400
-                                hover:text-slate-600
-                                dark:hover:text-slate-200
-                            "
-                            aria-label={
-                                showConfirmPassword
-                                    ? "Hide password"
-                                    : "Show password"
-                            }
-                        >
-                            {showConfirmPassword ? (
-                                <EyeOff size={18} />
-                            ) : (
-                                <Eye size={18} />
-                            )}
-                        </button>
-                    }
-                    error={errors.confirmPassword?.message}
-                    autoComplete="new-password"
-                    {...register("confirmPassword")}
-                />
+                <motion.div variants={fieldVariants}>
+                    <Input
+                        forceLight
+                        label="Confirm Password"
+                        type={
+                            showConfirmPassword
+                                ? "text"
+                                : "password"
+                        }
+                        placeholder="Re-enter your password"
+                        leftIcon={<Lock size={18} />}
+                        rightIcon={
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowConfirmPassword(
+                                        (current) => !current
+                                    )
+                                }
+                                className="text-slate-400 hover:text-slate-600"
+                                aria-label={
+                                    showConfirmPassword
+                                        ? "Hide password"
+                                        : "Show password"
+                                }
+                            >
+                                {showConfirmPassword ? (
+                                    <EyeOff size={18} />
+                                ) : (
+                                    <Eye size={18} />
+                                )}
+                            </button>
+                        }
+                        error={errors.confirmPassword?.message}
+                        autoComplete="new-password"
+                        {...register("confirmPassword")}
+                    />
+                </motion.div>
 
 
                 {/* Upload Progress */}
-                {registerMutation.isPending && (
-                    <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                            <span className="text-slate-500 dark:text-slate-400">
-                                Creating account...
-                            </span>
-
-                            <span className="font-medium text-indigo-600 dark:text-indigo-400">
-                                {uploadProgress}%
-                            </span>
-                        </div>
-
-                        <div
-                            className="
-                                h-2 w-full overflow-hidden
-                                rounded-full
-                                bg-slate-200
-                                dark:bg-slate-700
-                            "
+                <AnimatePresence>
+                    {registerMutation.isPending && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-1 overflow-hidden"
                         >
-                            <div
-                                className="
-                                    h-full rounded-full
-                                    bg-indigo-600
-                                    transition-all duration-300
-                                "
-                                style={{
-                                    width: `${uploadProgress}%`,
-                                }}
-                            />
-                        </div>
-                    </div>
-                )}
+                            <div className="flex justify-between text-xs">
+                                <span className="text-slate-500">
+                                    Creating account...
+                                </span>
+
+                                <span className="font-medium text-indigo-600">
+                                    {uploadProgress}%
+                                </span>
+                            </div>
+
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                                <motion.div
+                                    className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-violet-600"
+                                    animate={{ width: `${uploadProgress}%` }}
+                                    transition={{ duration: 0.3 }}
+                                />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
 
                 {/* Submit */}
-                <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    isLoading={registerMutation.isPending}
-                    disabled={registerMutation.isPending}
-                    className="w-full"
-                >
-                    Create Account
-                </Button>
-            </form>
+                <motion.div variants={fieldVariants}>
+                    <motion.div
+                        whileHover={{ scale: registerMutation.isPending ? 1 : 1.015 }}
+                        whileTap={{ scale: registerMutation.isPending ? 1 : 0.985 }}
+                    >
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            size="lg"
+                            isLoading={registerMutation.isPending}
+                            disabled={registerMutation.isPending}
+                            rightIcon={<ArrowRight size={17} />}
+                            className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 shadow-lg shadow-indigo-500/25 hover:from-indigo-700 hover:to-violet-700"
+                        >
+                            Create Account
+                        </Button>
+                    </motion.div>
+                </motion.div>
+            </motion.form>
 
 
             {/* Login Link */}
-            <p
-                className="
-                    mt-6 text-center text-sm
-                    text-slate-500
-                    dark:text-slate-400
-                "
+            <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
+                className="mt-6 text-center text-sm text-slate-500"
             >
                 Already have an account?{" "}
 
                 <Link
                     to="/login"
-                    className="
-                        font-medium
-                        text-indigo-600
-                        hover:text-indigo-700
-                        hover:underline
-                        dark:text-indigo-400
-                    "
+                    className="font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
                 >
                     Sign in
                 </Link>
-            </p>
+            </motion.p>
         </div>
     );
 }

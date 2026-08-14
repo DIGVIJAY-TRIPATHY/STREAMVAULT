@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
-import { ThumbsUp } from "lucide-react";
+import { motion } from "framer-motion";
+import { ThumbsUp, Pencil, Trash2, ShieldAlert } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { videoApi } from "../api/videoApi";
@@ -11,11 +12,13 @@ import { userApi } from "../api/userApi";
 
 import useRequireAuth from "../hooks/useRequireAuth";
 
+import VideoPlayer from "../components/video/VideoPlayer";
 import Avatar from "../components/common/Avatar";
 import SubscribeButton from "../components/channel/SubscribeButton";
 import CommentList from "../components/comment/CommentList";
 import Loader from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 import { QUERY_KEYS } from "../utils/constants";
 import { formatRelativeDate, formatCount } from "../utils/formatDate";
@@ -24,6 +27,8 @@ import { selectCurrentUser } from "../features/auth/authSlice";
 
 function Watch() {
   const { videoId } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const currentUser = useSelector(selectCurrentUser);
   const requireAuth = useRequireAuth();
@@ -58,6 +63,7 @@ function Watch() {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isTogglingLike, setIsTogglingLike] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Sync local like state whenever the fetched video changes.
   useEffect(() => {
@@ -88,6 +94,26 @@ function Watch() {
     requireAuth(performLike, "Create a StreamVault account to like videos.");
   };
 
+  const isOwner =
+    currentUser?._id &&
+    video?.owner?._id &&
+    String(currentUser._id) === String(video.owner._id);
+
+  const isHighCommand = currentUser?.role === "highCommand";
+  const canDelete = isOwner || isHighCommand;
+
+  const handleDelete = async () => {
+    try {
+      await videoApi.deleteVideo(videoId);
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.DASHBOARD_VIDEOS] });
+      toast.success("Video deleted");
+      navigate(isOwner ? "/dashboard" : "/");
+    } catch (err) {
+      toast.error(err?.message || "Failed to delete video");
+      throw err;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
@@ -106,7 +132,12 @@ function Watch() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="mx-auto max-w-4xl"
+    >
       {video.status !== "approved" && (
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-400">
           <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
@@ -114,18 +145,22 @@ function Watch() {
           will appear publicly once approved.
         </div>
       )}
+
+      {isHighCommand && !isOwner && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/30 dark:text-indigo-400">
+          <ShieldAlert size={16} className="shrink-0" />
+          You&apos;re viewing this as highCommand. You can remove this video
+          if it violates platform guidelines.
+        </div>
+      )}
+
       {/* Player */}
-      <div className="aspect-video w-full overflow-hidden rounded-xl bg-black">
-        <video
-          src={getMediaUrl(video.videoFile)}
-          poster={getMediaUrl(video.thumbnail)}
-          controls
-          autoPlay
-          className="h-full w-full"
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
+      <VideoPlayer
+        src={getMediaUrl(video.videoFile)}
+        poster={getMediaUrl(video.thumbnail)}
+        title={video.title}
+        autoPlay
+      />
 
       {/* Title */}
       <h1 className="mt-4 text-xl font-bold text-slate-900 dark:text-white">
@@ -137,22 +172,52 @@ function Watch() {
           {formatCount(video.views)} views · {formatRelativeDate(video.createdAt)}
         </p>
 
-        <button
-          type="button"
-          onClick={handleToggleLike}
-          disabled={isTogglingLike}
-          className={`
-            flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors
-            ${
-              isLiked
-                ? "border-indigo-600 bg-indigo-50 text-indigo-600 dark:border-indigo-500 dark:bg-indigo-950/40 dark:text-indigo-400"
-                : "border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-            }
-          `}
-        >
-          <ThumbsUp size={16} className={isLiked ? "fill-current" : ""} />
-          {likeCount > 0 ? formatCount(likeCount) : "Like"}
-        </button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            type="button"
+            onClick={handleToggleLike}
+            disabled={isTogglingLike}
+            whileTap={{ scale: 0.94 }}
+            className={`
+              flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors
+              ${
+                isLiked
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-600 dark:border-indigo-500 dark:bg-indigo-950/40 dark:text-indigo-400"
+                  : "border-slate-300 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              }
+            `}
+          >
+            <motion.span
+              animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+              transition={{ duration: 0.35 }}
+              className="flex"
+            >
+              <ThumbsUp size={16} className={isLiked ? "fill-current" : ""} />
+            </motion.span>
+            {likeCount > 0 ? formatCount(likeCount) : "Like"}
+          </motion.button>
+
+          {isOwner && (
+            <Link
+              to={`/video/edit/${videoId}`}
+              className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <Pencil size={15} />
+              Edit
+            </Link>
+          )}
+
+          {canDelete && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 rounded-full border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+            >
+              <Trash2 size={15} />
+              Delete
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Channel row */}
@@ -197,7 +262,21 @@ function Watch() {
       <div className="mt-8">
         <CommentList videoId={videoId} />
       </div>
-    </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete this video?"
+        message={
+          isOwner
+            ? "This permanently deletes the video, its file, and all comments/likes. This cannot be undone."
+            : "As highCommand, you're permanently deleting this creator's video and all its data. This cannot be undone."
+        }
+        confirmLabel="Delete"
+        isDangerous
+      />
+    </motion.div>
   );
 }
 

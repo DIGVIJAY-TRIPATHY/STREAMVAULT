@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 
 const Input = forwardRef(function Input(
-    { label, error, helperText, leftIcon, rightIcon, className = '', id, ...rest },
+    { label, error, helperText, leftIcon, rightIcon, className = '', id, forceLight = false, ...rest },
     ref
 ) {
     return (
@@ -9,7 +9,7 @@ const Input = forwardRef(function Input(
             {label && (
                 <label
                     htmlFor={id}
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    className={`text-sm font-medium ${forceLight ? 'text-slate-700' : 'text-slate-700 dark:text-slate-300'}`}
                 >
                     {label}
                 </label>
@@ -28,8 +28,7 @@ const Input = forwardRef(function Input(
                     {...rest}
                     className={`
                         w-full rounded-lg border
-                        bg-white dark:bg-slate-900
-                        text-slate-900 dark:text-slate-100
+                        ${forceLight ? 'bg-white text-slate-900' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100'}
                         py-2 px-3
                         focus:outline-none
                         focus:ring-2
@@ -37,7 +36,9 @@ const Input = forwardRef(function Input(
                         ${
                             error
                                 ? 'border-red-500 focus:border-red-500'
-                                : 'border-slate-300 dark:border-slate-600 focus:border-indigo-500'
+                                : forceLight
+                                    ? 'border-slate-300 focus:border-indigo-500'
+                                    : 'border-slate-300 dark:border-slate-600 focus:border-indigo-500'
                         }
                         ${leftIcon ? 'pl-10' : ''}
                         ${rightIcon ? 'pr-10' : ''}
@@ -55,7 +56,7 @@ const Input = forwardRef(function Input(
             {error ? (
                 <p className="mt-1 text-xs text-red-500">{error}</p>
             ) : helperText ? (
-                <p className="text-xs text-slate-500 dark:text-slate-400">{helperText}</p>
+                <p className={`text-xs ${forceLight ? 'text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>{helperText}</p>
             ) : null}
         </div>
     );
